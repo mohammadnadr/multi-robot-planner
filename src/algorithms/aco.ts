@@ -1,0 +1,179 @@
+import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
+import type { CostConfig } from '../cost/types';
+import {
+  emptyResult,
+  estimateTaskCost,
+  evaluateAssignment,
+} from '../planning/evaluatePlan';
+import type {
+  AlgorithmResult,
+  Assignment,
+  GridMap,
+  PlanResult,
+  Robot,
+  Task,
+} from '../types';
+
+const ANTS = 12;
+const ITERATIONS = 14;
+const ALPHA = 1; // pheromone weight
+const BETA = 2; // heuristic weight
+const RHO = 0.35; // evaporation
+const Q = 100;
+
+type EdgeKey = string; // `${taskIndex}->${robotIndex}`
+
+function edgeKey(ti: number, ri: number): EdgeKey {
+  return `${ti}->${ri}`;
+}
+
+/**
+ * Ant Colony Optimization over task→robot assignment.
+ * Each ant builds a full assignment; pheromone reinforces low-Makespan solutions.
+ */
+export function runAco(
+  map: GridMap,
+  robots: Robot[],
+  tasks: Task[],
+  costConfig: CostConfig = DEFAULT_COST_CONFIG,
+): AlgorithmResult {
+  const meta = {
+    id: 'aco' as const,
+    name: 'Ant Colony (ACO)',
+    description:
+      'Pheromone search over task→robot assignments; ants reinforce allocations with better Makespan after wait insertion.',
+  };
+
+  if (!robots.length || !tasks.length) {
+    return { ...meta, ...emptyResult(robots) };
+  }
+
+  let best: PlanResult | null = null;
+
+  for (let k = 1; k <= robots.length; k++) {
+    const sub = robots.slice(0, k);
+    const candidate = optimizeAco(map, sub, tasks, costConfig);
+    if (!candidate) continue;
+    if (!best || candidate.makespan < best.makespan) best = candidate;
+  }
+
+  return { ...meta, ...(best ?? emptyResult(robots)) };
+}
+
+function optimizeAco(
+  map: GridMap,
+  robots: Robot[],
+  tasks: Task[],
+  costConfig: CostConfig,
+): PlanResult | null {
+  const nR = robots.length;
+  const nT = tasks.length;
+  const pheromone = new Map<EdgeKey, number>();
+
+  for (let ti = 0; ti < nT; ti++) {
+    for (let ri = 0; ri < nR; ri++) {
+      pheromone.set(edgeKey(ti, ri), 1);
+    }
+  }
+
+  let best: PlanResult | null = null;
+  let bestAssign: Assignment | null = null;
+
+  for (let iter = 0; iter < ITERATIONS; iter++) {
+    const antResults: { assign: Assignment; result: PlanResult }[] = [];
+
+    for (let a = 0; a < ANTS; a++) {
+      const assign = buildAntAssignment(robots, tasks, pheromone);
+      const result = evaluateAssignment(map, robots, assign, costConfig);
+      if (!result) continue;
+      antResults.push({ assign, result });
+      if (!best || result.makespan < best.makespan) {
+        best = result;
+        bestAssign = assign;
+      }
+    }
+
+    // Evaporate
+    for (const [ek, val] of pheromone) {
+      pheromone.set(ek, Math.max(0.05, val * (1 - RHO)));
+    }
+
+    // Deposit
+    for (const { assign, result } of antResults) {
+      const deposit = Q / Math.max(1, result.makespan);
+      assign.forEach((robotTasks, ri) => {
+        robotTasks.forEach((task) => {
+          const ti = tasks.findIndex((t) => t.id === task.id);
+          if (ti < 0) return;
+          const ek = edgeKey(ti, ri);
+          pheromone.set(ek, (pheromone.get(ek) ?? 1) + deposit);
+        });
+      });
+    }
+
+    // Elite deposit on global best
+    if (bestAssign && best) {
+      const elite = (Q * 2) / Math.max(1, best.makespan);
+      bestAssign.forEach((robotTasks, ri) => {
+        robotTasks.forEach((task) => {
+          const ti = tasks.findIndex((t) => t.id === task.id);
+          if (ti < 0) return;
+          const ek = edgeKey(ti, ri);
+          pheromone.set(ek, (pheromone.get(ek) ?? 1) + elite);
+        });
+      });
+    }
+  }
+
+  return best;
+}
+
+function buildAntAssignment(
+  robots: Robot[],
+  tasks: Task[],
+  pheromone: Map<EdgeKey, number>,
+): Assignment {
+  const nR = robots.length;
+  const assign: Assignment = Array.from({ length: nR }, () => []);
+  const load = new Array(nR).fill(0);
+  const pos = robots.map((r) => ({ x: r.x, y: r.y }));
+
+  // Random task order with slight pheromone-biased shuffle
+  const order = [...tasks.keys()];
+  for (let i = order.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    ;[order[i], order[j]] = [order[j], order[i]];
+  }
+
+  for (const ti of order) {
+    const task = tasks[ti];
+    const weights: number[] = [];
+    let sum = 0;
+
+    for (let ri = 0; ri < nR; ri++) {
+      const tau = pheromone.get(edgeKey(ti, ri)) ?? 1;
+      const eta =
+        1 /
+        Math.max(1, estimateTaskCost(pos[ri], task, load[ri]));
+      const w = Math.pow(tau, ALPHA) * Math.pow(eta, BETA);
+      weights.push(w);
+      sum += w;
+    }
+
+    let pick = Math.random() * sum;
+    let chosen = 0;
+    for (let ri = 0; ri < nR; ri++) {
+      pick -= weights[ri];
+      if (pick <= 0) {
+        chosen = ri;
+        break;
+      }
+    }
+
+    assign[chosen].push(task);
+    load[chosen] = estimateTaskCost(pos[chosen], task, load[chosen]);
+    pos[chosen] = { ...task.deliv };
+  }
+
+  return assign;
+}
