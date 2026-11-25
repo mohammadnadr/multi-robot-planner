@@ -1,3 +1,4 @@
+import { createPortal } from 'react-dom';
 import { ALGORITHM_ORDER } from '../algorithms';
 import {
   ALGORITHM_STEPS,
@@ -36,7 +37,7 @@ type Props = {
 export function AlgorithmRunWizard({ progress }: Props) {
   const pct = Math.round(progress.overallProgress * 100);
 
-  return (
+  const wizard = (
     <div
       className="overlay run-wizard"
       role="dialog"
@@ -96,4 +97,7 @@ export function AlgorithmRunWizard({ progress }: Props) {
       )}
     </div>
   );
+
+  if (typeof document === 'undefined') return wizard;
+  return createPortal(wizard, document.body);
 }

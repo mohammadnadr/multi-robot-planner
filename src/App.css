@@ -519,6 +519,14 @@ body {
   text-align: center;
 }
 
+/* Full-screen wizard above mobile drawer (sidebar z-index 75) */
+.overlay.run-wizard {
+  z-index: 300;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
 .comparison-header {
   display: flex;
   justify-content: space-between;
@@ -901,6 +909,31 @@ body {
     text-align: center;
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .overlay.run-wizard {
+    justify-content: flex-start;
+    align-items: stretch;
+    text-align: left;
+    padding-top: max(20px, env(safe-area-inset-top));
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    max-width: none;
+    width: 100%;
+  }
+
+  .run-wizard {
+    max-width: min(420px, calc(100vw - 32px));
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .run-wizard__steps {
+    margin-top: 12px;
+  }
+
+  .run-wizard__step {
+    padding: 10px 12px;
+    font-size: 0.9rem;
   }
 
   .info-tip__portal {

@@ -11,6 +11,7 @@ import { usePlanner } from '../context/PlannerContext';
 import { HELP } from '../help/glossary';
 import { DEFAULT_GRID_SIZE, GRID_MAX, GRID_MIN } from '../constants';
 import { useIsMobileLayout } from '../hooks/useMediaQuery';
+import { initialRunProgress } from '../planning/runProgress';
 
 export function AppLayout() {
   const {
@@ -41,10 +42,16 @@ export function AppLayout() {
     if (isMobile) setSidebarOpen(false);
   }, [isMobile, location.pathname]);
 
+  useEffect(() => {
+    if (running && isMobile) setSidebarOpen(false);
+  }, [running, isMobile]);
+
   return (
     <div className={`app${isMobile ? ' app--mobile' : ''}`}>
-      {running && runProgress && (
-        <AlgorithmRunWizard progress={runProgress} />
+      {running && (
+        <AlgorithmRunWizard
+          progress={runProgress ?? initialRunProgress()}
+        />
       )}
 
       {isMobile && (
