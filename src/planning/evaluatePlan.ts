@@ -14,7 +14,10 @@ import type {
 import type { AlgorithmRunContext } from './runProgress';
 import { reportRobotSweep } from './runProgress';
 import { addWaits } from './conflictResolve';
+import { geoAstar } from './geoAstar';
+import { pathTime } from './pathTime';
 import { buildRobotSequence } from './robotSequence';
+import { pathToShelfAndBack } from './shelfPath';
 
 /**
  * Build geometric sequences from an assignment, resolve conflicts with waits,
@@ -130,17 +133,37 @@ export async function findBestRobotCount(
   return best;
 }
 
+/** Timed cost: best shelf approach + delivery leg (no multi-robot waits). */
+export function estimatePickLegCost(
+  map: GridMap,
+  from: Point,
+  task: Task,
+  obstacles: Set<string>,
+): number {
+  const seg = pathToShelfAndBack(map, from, task.pick, obstacles);
+  if (!seg) {
+    return (
+      1e6 +
+      manhattan(from, task.pick) +
+      manhattan(task.pick, task.deliv)
+    );
+  }
+  const pickTime = pathTime(seg.path).time;
+  const toDel = geoAstar(map, seg.exitPos, task.deliv, obstacles);
+  if (!toDel) {
+    return pickTime + manhattan(seg.exitPos, task.deliv);
+  }
+  return pickTime + pathTime(toDel).time;
+}
+
 export function estimateTaskCost(
+  map: GridMap,
   robotPos: Point,
   task: Task,
   loadSoFar: number,
+  obstacles: Set<string>,
 ): number {
-  return (
-    loadSoFar +
-    manhattan(robotPos, task.pick) +
-    manhattan(task.pick, task.deliv) +
-    2
-  );
+  return loadSoFar + estimatePickLegCost(map, robotPos, task, obstacles);
 }
 
 export function emptyResult(robots: Robot[]): PlanResult {

@@ -21,12 +21,16 @@ export function buildTasks(map: GridMap, demand: Demand): Task[] {
   let counter = 0;
   ACTIVE_PRODUCT_TYPES.forEach((typ) => {
     const need = Math.min(demand[typ], shelves[typ].length);
+    const nearestRobot = (p: { x: number; y: number }) => {
+      if (!map.robots.length) return 0;
+      return Math.min(...map.robots.map((r) => manhattan(p, r)));
+    };
+    const shelfScore = (p: { x: number; y: number }) =>
+      manhattan(p, map.delivery!) + nearestRobot(p);
+
     const sorted = shelves[typ]
       .slice()
-      .sort(
-        (a, b) =>
-          manhattan(a, map.delivery!) - manhattan(b, map.delivery!),
-      );
+      .sort((a, b) => shelfScore(a) - shelfScore(b));
     for (let i = 0; i < need; i++) {
       tasks.push({
         id: `${typ}${counter++}`,
