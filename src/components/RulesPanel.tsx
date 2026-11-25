@@ -11,6 +11,7 @@ export function RulesPanel() {
         <li>One item capacity per robot.</li>
         <li>Enter shelf → reverse out (no turn inside).</li>
         <li>Shared corridors OK; never same cell at same time.</li>
+        <li>No head-on pass-through (opposite robots swap cells).</li>
         <li>Lower-priority robot waits (inserts waits).</li>
         <li>After a turn, next 2 cells cost +1 (accel).</li>
         <li>Return home when tasks are done.</li>
