@@ -5,9 +5,11 @@ import type { AlgorithmRunContext } from '../planning/runProgress';
 import { reportAcoIteration } from '../planning/runProgress';
 import {
   emptyResult,
-  estimateTaskCost,
   evaluateAssignment,
 } from '../planning/evaluatePlan';
+import { estimateTaskCost } from '../planning/pickCost';
+import { buildShelfPool, type ShelfPool } from '../planning/shelfPool';
+import { reserveBestShelf } from '../planning/resolvePicks';
 import type {
   AlgorithmResult,
   Assignment,
@@ -168,6 +170,7 @@ function buildAntAssignment(
   const assign: Assignment = Array.from({ length: nR }, () => []);
   const load = new Array(nR).fill(0);
   const pos = robots.map((r) => ({ x: r.x, y: r.y }));
+  const pool: ShelfPool = buildShelfPool(map);
 
   // Random task order with slight pheromone-biased shuffle
   const order = [...tasks.keys()];
@@ -187,7 +190,7 @@ function buildAntAssignment(
         1 /
         Math.max(
           1,
-          estimateTaskCost(map, pos[ri], task, load[ri], obstacles),
+          estimateTaskCost(map, pos[ri], task, load[ri], obstacles, pool),
         );
       const w = Math.pow(tau, ALPHA) * Math.pow(eta, BETA);
       weights.push(w);
@@ -211,7 +214,9 @@ function buildAntAssignment(
       task,
       load[chosen],
       obstacles,
+      pool,
     );
+    reserveBestShelf(map, pos[chosen], task.type, pool, obstacles);
     pos[chosen] = { ...task.deliv };
   }
 

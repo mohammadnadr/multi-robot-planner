@@ -18,6 +18,8 @@ export const HELP = {
     'Movement and collision rules: no same cell at same time, no head-on swap moves in a corridor; lower-priority robots insert waits.',
   shelfApproach:
     'Picks the shelf aisle (left/right/top/bottom) with the shortest timed path from the robot—including enter and reverse—then builds delivery legs. Waits from other robots may still add time.',
+  dynamicPick:
+    'Each pick task targets a product type (A–D). At plan time the sim chooses the nearest unused shelf of that type (timed path) and orders visits with nearest-neighbor routing.',
   results: 'Side-by-side comparison of all algorithms on time (Makespan) and cost (energy + $).',
 
   // Tools

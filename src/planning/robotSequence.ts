@@ -13,6 +13,7 @@ export function buildRobotSequence(
   const full: Point[] = [];
 
   for (const task of tasks) {
+    if (task.pick === undefined) return null;
     const seg = pathToShelfAndBack(map, pos, task.pick, obstacles);
     if (!seg) return null;
     full.push(...seg.path);
