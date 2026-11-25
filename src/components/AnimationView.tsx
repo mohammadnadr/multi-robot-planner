@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ALGORITHM_ORDER } from '../algorithms';
 import { HELP } from '../help/glossary';
 import type { AlgorithmId, AllResults, GridMap } from '../types';
+import { useCanvasSize } from '../hooks/useCanvasSize';
 import { CalculationBreakdown } from './CalculationBreakdown';
 import { GridCanvas } from './GridCanvas';
 import { LabelWithInfo } from './LabelWithInfo';
@@ -32,6 +33,7 @@ export function AnimationView({
   const [playing, setPlaying] = useState(true);
   const [frame, setFrame] = useState(0);
 
+  const canvasSize = useCanvasSize({ max: 500, min: 280 });
   const result = results[algId];
   const maxFrame = useMemo(() => {
     let m = 1;
@@ -111,9 +113,10 @@ export function AnimationView({
       <div className="anim-layout">
         <GridCanvas
           map={map}
-          size={500}
+          size={canvasSize}
           paths={result.paths}
           frame={frame}
+          className="grid-canvas--responsive"
         />
         <aside>
           <h2>

@@ -6,6 +6,7 @@ import {
 import { formatCostAtTime } from '../cost/formatDuration';
 import { HELP } from '../help/glossary';
 import type { AllResults, AlgorithmId, GridMap, TimedPaths } from '../types';
+import { useCanvasSize } from '../hooks/useCanvasSize';
 import { CalculationBreakdown } from './CalculationBreakdown';
 import { GridCanvas } from './GridCanvas';
 import { LabelWithInfo } from './LabelWithInfo';
@@ -39,6 +40,7 @@ export function ComparisonPanel({
   onAnimate,
   onBack,
 }: Props) {
+  const cardCanvasSize = useCanvasSize({ max: 260, min: 200, pad: 56 });
   const bestMs = bestMakespan(results);
   const bestUsd = bestTotalUsd(results);
   const bestDelivery = bestDeliverySeconds(results);
@@ -139,10 +141,11 @@ export function ComparisonPanel({
               <p className="algo-desc">{r.description}</p>
               <GridCanvas
                 map={map}
-                size={260}
+                size={cardCanvasSize}
                 paths={r.paths}
                 frame={lastFrame(r.paths)}
                 showRobots
+                className="grid-canvas--responsive grid-canvas--card"
               />
               <CalculationBreakdown result={r} />
               <button
