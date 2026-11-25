@@ -4,9 +4,11 @@ import type { AlgorithmRunContext } from '../planning/runProgress';
 import { getObstacleSet } from '../map/obstacles';
 import {
   emptyResult,
-  estimateTaskCost,
   findBestRobotCount,
 } from '../planning/evaluatePlan';
+import { estimateTaskCost } from '../planning/pickCost';
+import { buildShelfPool, type ShelfPool } from '../planning/shelfPool';
+import { reserveBestShelf } from '../planning/resolvePicks';
 import type {
   AlgorithmResult,
   Assignment,
@@ -30,6 +32,7 @@ export function assignGreedy(
   const rem = [...tasks];
   const load = new Array(n).fill(0);
   const pos = robots.map((r) => ({ x: r.x, y: r.y }));
+  const pool: ShelfPool = buildShelfPool(map);
 
   while (rem.length) {
     let bestR = 0;
@@ -38,7 +41,14 @@ export function assignGreedy(
 
     for (let ti = 0; ti < rem.length; ti++) {
       for (let r = 0; r < n; r++) {
-        const c = estimateTaskCost(map, pos[r], rem[ti], load[r], obstacles);
+        const c = estimateTaskCost(
+          map,
+          pos[r],
+          rem[ti],
+          load[r],
+          obstacles,
+          pool,
+        );
         if (c < bestC) {
           bestC = c;
           bestR = r;
@@ -50,7 +60,7 @@ export function assignGreedy(
     const task = rem.splice(bestT, 1)[0];
     assign[bestR].push(task);
     load[bestR] = bestC;
-    // Approximate next position at delivery
+    reserveBestShelf(map, pos[bestR], task.type, pool, obstacles);
     pos[bestR] = { ...task.deliv };
   }
 

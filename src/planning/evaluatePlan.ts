@@ -1,7 +1,7 @@
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import { emptyCosts, computeCostBreakdown } from '../cost/costEngine';
 import type { CostConfig } from '../cost/types';
-import { getObstacleSet, manhattan } from '../map/obstacles';
+import { getObstacleSet } from '../map/obstacles';
 import type {
   Assignment,
   GridMap,
@@ -14,10 +14,13 @@ import type {
 import type { AlgorithmRunContext } from './runProgress';
 import { reportRobotSweep } from './runProgress';
 import { addWaits } from './conflictResolve';
-import { geoAstar } from './geoAstar';
-import { pathTime } from './pathTime';
+export {
+  estimateFlexiblePickCost,
+  estimatePickLegCost,
+  estimateTaskCost,
+} from './pickCost';
 import { buildRobotSequence } from './robotSequence';
-import { pathToShelfAndBack } from './shelfPath';
+import { resolveAssignment } from './resolvePicks';
 
 /**
  * Build geometric sequences from an assignment, resolve conflicts with waits,
@@ -30,22 +33,20 @@ export function evaluateAssignment(
   costConfig: CostConfig = DEFAULT_COST_CONFIG,
 ): PlanResult | null {
   const obstacles = getObstacleSet(map);
+  const resolvedAssign = resolveAssignment(map, robots, assignment, obstacles);
+  if (!resolvedAssign) return null;
+
   const geometricPaths: Point[][] = [];
   const usedAssignment: Assignment = [];
 
   for (let i = 0; i < robots.length; i++) {
-    const tasks = assignment[i] ?? [];
+    const tasks = resolvedAssign[i] ?? [];
     usedAssignment.push(tasks);
     if (tasks.length === 0) {
       geometricPaths.push([{ x: robots[i].x, y: robots[i].y }]);
       continue;
     }
-    const seq = buildRobotSequence(
-      map,
-      robots[i],
-      tasks,
-      obstacles,
-    );
+    const seq = buildRobotSequence(map, robots[i], tasks, obstacles);
     if (!seq) return null;
     geometricPaths.push(seq);
   }
@@ -131,39 +132,6 @@ export async function findBestRobotCount(
   }
 
   return best;
-}
-
-/** Timed cost: best shelf approach + delivery leg (no multi-robot waits). */
-export function estimatePickLegCost(
-  map: GridMap,
-  from: Point,
-  task: Task,
-  obstacles: Set<string>,
-): number {
-  const seg = pathToShelfAndBack(map, from, task.pick, obstacles);
-  if (!seg) {
-    return (
-      1e6 +
-      manhattan(from, task.pick) +
-      manhattan(task.pick, task.deliv)
-    );
-  }
-  const pickTime = pathTime(seg.path).time;
-  const toDel = geoAstar(map, seg.exitPos, task.deliv, obstacles);
-  if (!toDel) {
-    return pickTime + manhattan(seg.exitPos, task.deliv);
-  }
-  return pickTime + pathTime(toDel).time;
-}
-
-export function estimateTaskCost(
-  map: GridMap,
-  robotPos: Point,
-  task: Task,
-  loadSoFar: number,
-  obstacles: Set<string>,
-): number {
-  return loadSoFar + estimatePickLegCost(map, robotPos, task, obstacles);
 }
 
 export function emptyResult(robots: Robot[]): PlanResult {

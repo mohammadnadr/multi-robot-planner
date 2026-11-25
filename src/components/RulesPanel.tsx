@@ -19,6 +19,11 @@ export function RulesPanel() {
         <li>Lower-priority robot waits (inserts waits).</li>
         <li>After a turn, next 2 cells cost +1 (accel).</li>
         <li>Return home when tasks are done.</li>
+        <li>
+          <LabelWithInfo tip={HELP.dynamicPick}>
+            Nearest unused shelf per product type + visit order optimized.
+          </LabelWithInfo>
+        </li>
       </ul>
       <div className="formula">
         <LabelWithInfo tip={HELP.makespan}>

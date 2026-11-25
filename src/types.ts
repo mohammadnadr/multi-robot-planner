@@ -12,9 +12,12 @@ export type Demand = Record<ShelfType, number>;
 export type Task = {
   id: string;
   type: ShelfType;
-  pick: Point;
+  /** Set after dynamic shelf resolution; omitted when tasks are generated. */
+  pick?: Point;
   deliv: Point;
 };
+
+export type ResolvedTask = Task & { pick: Point };
 
 export type Robot = Point & { id: number };
 

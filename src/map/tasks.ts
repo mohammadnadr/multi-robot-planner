@@ -1,41 +1,29 @@
 import { ACTIVE_PRODUCT_TYPES, VALUE_TO_SHELF } from '../constants';
 import type { Demand, GridMap, ShelfType, Task } from '../types';
-import { manhattan } from './obstacles';
 
-/** Build pick→deliver tasks from demand and nearest shelves to delivery. */
+/** Build deliver tasks from demand; shelf cells are chosen at plan time from the pool. */
 export function buildTasks(map: GridMap, demand: Demand): Task[] {
   if (!map.delivery) return [];
 
-  const shelves = Object.fromEntries(
-    ACTIVE_PRODUCT_TYPES.map((typ) => [typ, [] as { x: number; y: number }[]]),
-  ) as Record<ShelfType, { x: number; y: number }[]>;
+  const shelfCount = Object.fromEntries(
+    ACTIVE_PRODUCT_TYPES.map((typ) => [typ, 0]),
+  ) as Record<ShelfType, number>;
 
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
       const typ = VALUE_TO_SHELF[map.cells[y][x]];
-      if (typ) shelves[typ].push({ x, y });
+      if (typ) shelfCount[typ]++;
     }
   }
 
   const tasks: Task[] = [];
   let counter = 0;
   ACTIVE_PRODUCT_TYPES.forEach((typ) => {
-    const need = Math.min(demand[typ], shelves[typ].length);
-    const nearestRobot = (p: { x: number; y: number }) => {
-      if (!map.robots.length) return 0;
-      return Math.min(...map.robots.map((r) => manhattan(p, r)));
-    };
-    const shelfScore = (p: { x: number; y: number }) =>
-      manhattan(p, map.delivery!) + nearestRobot(p);
-
-    const sorted = shelves[typ]
-      .slice()
-      .sort((a, b) => shelfScore(a) - shelfScore(b));
+    const need = Math.min(demand[typ], shelfCount[typ]);
     for (let i = 0; i < need; i++) {
       tasks.push({
         id: `${typ}${counter++}`,
         type: typ,
-        pick: sorted[i],
         deliv: { ...map.delivery! },
       });
     }
