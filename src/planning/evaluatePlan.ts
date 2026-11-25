@@ -11,6 +11,8 @@ import type {
   RobotMetrics,
   Task,
 } from '../types';
+import type { AlgorithmRunContext } from './runProgress';
+import { reportRobotSweep } from './runProgress';
 import { addWaits } from './conflictResolve';
 import { buildRobotSequence } from './robotSequence';
 
@@ -104,16 +106,18 @@ export function evaluateAssignment(
 }
 
 /** Try robot counts 1..N and keep the best Makespan. */
-export function findBestRobotCount(
+export async function findBestRobotCount(
   map: GridMap,
   robots: Robot[],
   tasks: Task[],
   assignFn: (robots: Robot[], tasks: Task[]) => Assignment,
   costConfig: CostConfig = DEFAULT_COST_CONFIG,
-): PlanResult | null {
+  runCtx?: AlgorithmRunContext,
+): Promise<PlanResult | null> {
   let best: PlanResult | null = null;
 
   for (let k = 1; k <= robots.length; k++) {
+    await reportRobotSweep(runCtx, k, robots.length);
     const sub = robots.slice(0, k);
     const assignment = assignFn(sub, tasks);
     const result = evaluateAssignment(map, sub, assignment, costConfig);

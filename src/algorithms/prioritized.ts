@@ -1,5 +1,6 @@
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import type { CostConfig } from '../cost/types';
+import type { AlgorithmRunContext } from '../planning/runProgress';
 import { emptyResult, findBestRobotCount } from '../planning/evaluatePlan';
 import type {
   AlgorithmResult,
@@ -49,12 +50,13 @@ export function assignPriorityFill(robots: Robot[], tasks: Task[]): Assignment {
   return assign;
 }
 
-export function runPrioritized(
+export async function runPrioritized(
   map: GridMap,
   robots: Robot[],
   tasks: Task[],
   costConfig: CostConfig = DEFAULT_COST_CONFIG,
-): AlgorithmResult {
+  runCtx?: AlgorithmRunContext,
+): Promise<AlgorithmResult> {
   if (!robots.length || !tasks.length) {
     return {
       id: 'prioritized',
@@ -65,12 +67,13 @@ export function runPrioritized(
     };
   }
 
-  const best = findBestRobotCount(
+  const best = await findBestRobotCount(
     map,
     robots,
     tasks,
     assignPriorityFill,
     costConfig,
+    runCtx,
   );
   return {
     id: 'prioritized',

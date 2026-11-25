@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
+import { AlgorithmRunWizard } from '../components/AlgorithmRunWizard';
 import { Breadcrumb } from '../components/Breadcrumb';
 import { CostConfigPanel } from '../components/CostConfigPanel';
 import { DemandPanel } from '../components/DemandPanel';
@@ -20,6 +21,7 @@ export function AppLayout() {
     setDemand,
     status,
     running,
+    runProgress,
     costConfig,
     setCostConfig,
     runAlgorithms,
@@ -41,13 +43,8 @@ export function AppLayout() {
 
   return (
     <div className={`app${isMobile ? ' app--mobile' : ''}`}>
-      {running && (
-        <div className="overlay">
-          <div>Calculating paths + energy costs…</div>
-          <div className="overlay-sub">
-            Accel/brake energy · shelf reverse · wait conflicts · $ scoring
-          </div>
-        </div>
+      {running && runProgress && (
+        <AlgorithmRunWizard progress={runProgress} />
       )}
 
       {isMobile && (
@@ -126,7 +123,12 @@ export function AppLayout() {
 
         <CostConfigPanel config={costConfig} onChange={setCostConfig} />
 
-        <button type="button" className="btn btn-run" onClick={runAlgorithms}>
+        <button
+          type="button"
+          className="btn btn-run"
+          onClick={runAlgorithms}
+          disabled={running}
+        >
           ▶ Run All Algorithms
         </button>
         <button
