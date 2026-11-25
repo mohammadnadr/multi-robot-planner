@@ -1,4 +1,4 @@
-import { DEFAULT_GRID_SIZE } from '../constants';
+import { DEFAULT_GRID_SIZE, DELIVERY_CELL, SHELF_TYPES } from '../constants';
 import type { CellType, GridMap } from '../types';
 
 export function emptyGrid(width: number, height: number): CellType[][] {
@@ -7,38 +7,46 @@ export function emptyGrid(width: number, height: number): CellType[][] {
   );
 }
 
-/** Default warehouse matching the original HTML demo. */
+/** Default 20×20 warehouse: six pick aisles, delivery band, staging robots. */
 export function createDefaultMap(
-  size = DEFAULT_GRID_SIZE,
+  width = DEFAULT_GRID_SIZE,
+  height = DEFAULT_GRID_SIZE,
 ): GridMap {
-  const cells = emptyGrid(size, size);
+  const cells = emptyGrid(width, height);
+  const aisleX = [2, 5, 8, 11, 14, 17];
 
-  ;[1, 2, 3].forEach((y) => {
-    cells[y][1] = 1;
-    cells[y][2] = 1;
-  });
-  ;[1, 2, 3].forEach((y) => {
-    cells[y][4] = 2;
-    cells[y][5] = 2;
-  });
-  ;[1, 2, 3].forEach((y) => {
-    cells[y][7] = 3;
-    cells[y][8] = 3;
-  });
+  for (let yi = 0; yi < SHELF_TYPES.length; yi++) {
+    const x = aisleX[yi];
+    if (x >= width) continue;
+    const shelfVal = (yi + 1) as CellType;
+    for (let y = 3; y <= Math.min(14, height - 1); y++) {
+      cells[y][x] = shelfVal;
+    }
+  }
 
-  cells[8][4] = 4;
-  cells[8][5] = 4;
+  const delivY = Math.min(17, height - 1);
+  const delivCells = [
+    { x: 8, y: delivY },
+    { x: 9, y: delivY },
+    { x: 10, y: delivY },
+    { x: 11, y: delivY },
+  ];
+  for (const { x, y } of delivCells) {
+    if (x < width && y < height) cells[y][x] = DELIVERY_CELL;
+  }
+  const delivery = { x: 9, y: delivY };
+
+  const robotRows = [3, 7, 11, 15, 18];
+  const robots = robotRows
+    .filter((y) => y < height)
+    .map((y, id) => ({ id, x: 0, y }));
 
   return {
-    width: size,
-    height: size,
+    width,
+    height,
     cells,
-    delivery: { x: 4, y: 8 },
-    robots: [
-      { id: 0, x: 0, y: 0 },
-      { id: 1, x: 0, y: 4 },
-      { id: 2, x: 0, y: 9 },
-    ],
+    delivery,
+    robots,
   };
 }
 

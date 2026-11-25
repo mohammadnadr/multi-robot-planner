@@ -136,9 +136,12 @@ body {
 .tool-a { background: #c62828; }
 .tool-b { background: #2e7d32; }
 .tool-c { background: #1565c0; }
-.tool-d { background: #f9a825; color: #111; }
+.tool-d { background: #6a1b9a; }
+.tool-e { background: #00838f; }
+.tool-f { background: #558b2f; }
+.tool-delivery { background: #f9a825; color: #111; }
 .tool-r { background: #ef6c00; }
-.tool-e { background: #546e7a; }
+.tool-eraser { background: #546e7a; }
 
 .row {
   display: flex;

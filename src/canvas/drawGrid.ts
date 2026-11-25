@@ -1,7 +1,8 @@
 import {
   CELL_COLORS,
   CELL_LABELS,
-  ROBOT_COLORS,
+  DELIVERY_CELL,
+  robotColor,
 } from '../constants';
 import { headingAtFrame } from '../cost/pathToActions';
 import type { Heading } from '../cost/types';
@@ -67,7 +68,7 @@ export function drawGrid(
       roundRect(ctx, x * cell + 2, y * cell + 2, cell - 4, cell - 4, 6);
       ctx.fill();
       if (v) {
-        ctx.fillStyle = v === 4 ? '#111' : '#fff';
+        ctx.fillStyle = v === DELIVERY_CELL ? '#111' : '#fff';
         ctx.font = `bold ${Math.max(10, cell * 0.32)}px "Segoe UI", sans-serif`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
@@ -80,7 +81,7 @@ export function drawGrid(
     Object.keys(paths).forEach((ri) => {
       const path = paths[+ri];
       if (!path || path.length < 2) return;
-      ctx.strokeStyle = ROBOT_COLORS[+ri % 3];
+      ctx.strokeStyle = robotColor(+ri);
       ctx.globalAlpha = 0.35;
       ctx.lineWidth = Math.max(2, cell * 0.08);
       ctx.beginPath();
@@ -155,7 +156,7 @@ function drawRobotArrow(
   ctx.lineTo(-size * 0.2, 0);
   ctx.lineTo(-size * 0.45, -size * 0.42);
   ctx.closePath();
-  ctx.fillStyle = ROBOT_COLORS[index % 3];
+  ctx.fillStyle = robotColor(index);
   ctx.fill();
   ctx.strokeStyle = '#fff';
   ctx.lineWidth = 2;

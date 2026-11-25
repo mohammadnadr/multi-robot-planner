@@ -4,7 +4,7 @@ import { useCanvasSize } from '../hooks/useCanvasSize';
 
 export function EditorPage() {
   const { map, handleCellClick } = usePlanner();
-  const canvasSize = useCanvasSize({ max: 500, min: 280 });
+  const canvasSize = useCanvasSize({ max: 560, min: 280 });
 
   return (
     <div className="page editor-page">

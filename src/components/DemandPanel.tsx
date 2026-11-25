@@ -1,4 +1,4 @@
-import { MAX_DEMAND } from '../constants';
+import { MAX_DEMAND, SHELF_TYPES } from '../constants';
 import { HELP } from '../help/glossary';
 import type { Demand, ShelfType } from '../types';
 import { InfoTip } from './InfoTip';
@@ -9,11 +9,14 @@ type Props = {
   onChange: (demand: Demand) => void;
 };
 
-const TYPES: { typ: ShelfType; tip: string }[] = [
-  { typ: 'A', tip: HELP.demandA },
-  { typ: 'B', tip: HELP.demandB },
-  { typ: 'C', tip: HELP.demandC },
-];
+const DEMAND_HELP: Record<ShelfType, string> = {
+  A: HELP.demandA,
+  B: HELP.demandB,
+  C: HELP.demandC,
+  D: HELP.demandD,
+  E: HELP.demandE,
+  F: HELP.demandF,
+};
 
 export function DemandPanel({ demand, onChange }: Props) {
   const bump = (typ: ShelfType, delta: number) => {
@@ -28,11 +31,11 @@ export function DemandPanel({ demand, onChange }: Props) {
       <h2>
         <LabelWithInfo tip={HELP.demand}>Demand</LabelWithInfo>
       </h2>
-      {TYPES.map(({ typ, tip }) => (
+      {SHELF_TYPES.map((typ) => (
         <div className="row" key={typ}>
           <span className="demand-label">
             {typ}
-            <InfoTip text={tip} />
+            <InfoTip text={DEMAND_HELP[typ]} />
           </span>
           <button
             type="button"

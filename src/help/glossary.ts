@@ -3,7 +3,7 @@ export const HELP = {
   // Sections
   tools: 'Paint mode for the map: place shelves, delivery, robots, or erase cells.',
   demand:
-    'How many items of each shelf type (A/B/C) must be picked and delivered in this run.',
+    'How many items of each shelf type (A–F) must be picked and delivered in this run.',
   gridSize: 'Width and height of the warehouse grid (cells). Larger maps allow bigger layouts.',
   gridW: 'Number of columns in the grid.',
   gridH: 'Number of rows in the grid.',
@@ -22,14 +22,21 @@ export const HELP = {
   shelfA: 'Place type-A shelf cells (pick locations for A items). Treated as obstacles except when entering to pick.',
   shelfB: 'Place type-B shelf cells (pick locations for B items).',
   shelfC: 'Place type-C shelf cells (pick locations for C items).',
+  shelfD: 'Place type-D shelf cells (pick locations for D items).',
+  shelfE: 'Place type-E shelf cells (pick locations for E items).',
+  shelfF: 'Place type-F shelf cells (pick locations for F items).',
   delivery: 'Set the delivery / drop-off zone. Robots bring picked items here.',
-  robot: 'Place a robot start position (max 3). Robot 0 has highest priority in conflicts.',
+  robot:
+    'Place a robot start position (no limit). Robot 0 has highest priority in conflicts.',
   eraser: 'Clear a cell: removes shelves, delivery, or a robot on that cell.',
 
   // Demand
   demandA: 'Number of A items to deliver (capped by how many A shelves exist).',
   demandB: 'Number of B items to deliver (capped by how many B shelves exist).',
   demandC: 'Number of C items to deliver (capped by how many C shelves exist).',
+  demandD: 'Number of D items to deliver (capped by how many D shelves exist).',
+  demandE: 'Number of E items to deliver (capped by how many E shelves exist).',
+  demandF: 'Number of F items to deliver (capped by how many F shelves exist).',
 
   // Cost config
   vmax: 'Maximum robot speed (cells per step equivalent). Higher speed burns more cruise energy.',
