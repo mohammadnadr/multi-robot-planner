@@ -67,9 +67,13 @@ export function initialRunProgress(): RunProgress {
 
 /** Yield so React can paint between planning steps. */
 export function yieldToUI(): Promise<void> {
+  const mobile =
+    typeof window !== 'undefined' &&
+    window.matchMedia('(max-width: 900px)').matches;
+  const delay = mobile ? 32 : 0;
   return new Promise((resolve) => {
     requestAnimationFrame(() => {
-      setTimeout(resolve, 0);
+      setTimeout(resolve, delay);
     });
   });
 }
