@@ -38,12 +38,17 @@ export function GridCanvas({
       ref={ref}
       width={size}
       height={size}
-      className={className}
+      className={className ?? 'grid-canvas'}
+      style={{ maxWidth: '100%', height: 'auto', touchAction: 'manipulation' }}
       onClick={(e) => {
         if (!onCellClick) return;
         const rect = e.currentTarget.getBoundingClientRect();
-        const x = Math.floor((e.clientX - rect.left) / cell);
-        const y = Math.floor((e.clientY - rect.top) / cell);
+        const scaleX = size / rect.width;
+        const scaleY = size / rect.height;
+        const localX = (e.clientX - rect.left) * scaleX;
+        const localY = (e.clientY - rect.top) * scaleY;
+        const x = Math.floor(localX / cell);
+        const y = Math.floor(localY / cell);
         if (x < 0 || x >= map.width || y < 0 || y >= map.height) return;
         onCellClick(x, y);
       }}

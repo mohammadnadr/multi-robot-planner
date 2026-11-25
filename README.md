@@ -2,7 +2,9 @@
 
 Educational **Multi-AGV / multi-robot task allocation and path planning** simulator (React + TypeScript).
 
-**Live demo:** [https://mohammadnadr.github.io/multi-robot-planner/](https://mohammadnadr.github.io/multi-robot-planner/)
+**Live demo (desktop):** [https://mohammadnadr.github.io/multi-robot-planner/](https://mohammadnadr.github.io/multi-robot-planner/)
+
+**Live demo (mobile / responsive):** [https://mohammadnadr.github.io/multi-robot-planner/mobile/](https://mohammadnadr.github.io/multi-robot-planner/mobile/) — deployed from branch `cursor/responsive-design-8515` via GitHub Actions.
 
 ## Algorithms
 

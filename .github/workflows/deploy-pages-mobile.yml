@@ -1,0 +1,53 @@
+# Publishes the responsive build at /multi-robot-planner/mobile/ on GitHub Pages
+# (desktop build remains at /multi-robot-planner/ from deploy-pages.yml on main).
+
+name: Deploy Mobile GitHub Pages
+
+on:
+  push:
+    branches: [cursor/responsive-design-8515]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install
+        run: npm ci
+      - name: Build desktop (site root)
+        run: npm run build
+        env:
+          VITE_BASE: /multi-robot-planner/
+      - name: Build mobile bundle (subpath)
+        run: npx vite build --outDir dist/mobile
+        env:
+          VITE_BASE: /multi-robot-planner/mobile/
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
