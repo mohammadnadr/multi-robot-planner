@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, cursor/responsive-design-8515]
   workflow_dispatch:
 
 permissions:
@@ -29,6 +29,10 @@ jobs:
         run: npm run build
         env:
           VITE_BASE: /multi-robot-planner/
+      - name: Build mobile bundle (subpath)
+        run: npx vite build --outDir dist/mobile
+        env:
+          VITE_BASE: /multi-robot-planner/mobile/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
