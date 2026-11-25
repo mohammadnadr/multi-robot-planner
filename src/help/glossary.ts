@@ -3,7 +3,7 @@ export const HELP = {
   // Sections
   tools: 'Paint mode for the map: place shelves, delivery, robots, or erase cells.',
   demand:
-    'How many items of each shelf type (A–F) must be picked and delivered in this run.',
+    'How many items of each shelf type (A–D) must be picked and delivered in this run.',
   gridSize: 'Width and height of the warehouse grid (cells). Larger maps allow bigger layouts.',
   gridW: 'Number of columns in the grid.',
   gridH: 'Number of rows in the grid.',
@@ -27,7 +27,7 @@ export const HELP = {
   shelfF: 'Place type-F shelf cells (pick locations for F items).',
   delivery: 'Set the delivery / drop-off zone. Robots bring picked items here.',
   robot:
-    'Place a robot start position (no limit). Robot 0 has highest priority in conflicts.',
+    'Place a robot start position (max 4). Robot 0 has highest priority in conflicts.',
   eraser: 'Clear a cell: removes shelves, delivery, or a robot on that cell.',
 
   // Demand

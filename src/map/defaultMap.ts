@@ -1,4 +1,9 @@
-import { DEFAULT_GRID_SIZE, DELIVERY_CELL, SHELF_TYPES } from '../constants';
+import {
+  ACTIVE_PRODUCT_TYPES,
+  DEFAULT_GRID_SIZE,
+  DELIVERY_CELL,
+  MAX_ROBOTS,
+} from '../constants';
 import type { CellType, GridMap } from '../types';
 
 export function emptyGrid(width: number, height: number): CellType[][] {
@@ -7,15 +12,15 @@ export function emptyGrid(width: number, height: number): CellType[][] {
   );
 }
 
-/** Default 20×20 warehouse: six pick aisles, delivery band, staging robots. */
+/** Default 20×20 warehouse: four pick aisles, delivery band, up to four robots. */
 export function createDefaultMap(
   width = DEFAULT_GRID_SIZE,
   height = DEFAULT_GRID_SIZE,
 ): GridMap {
   const cells = emptyGrid(width, height);
-  const aisleX = [2, 5, 8, 11, 14, 17];
+  const aisleX = [3, 7, 11, 15];
 
-  for (let yi = 0; yi < SHELF_TYPES.length; yi++) {
+  for (let yi = 0; yi < ACTIVE_PRODUCT_TYPES.length; yi++) {
     const x = aisleX[yi];
     if (x >= width) continue;
     const shelfVal = (yi + 1) as CellType;
@@ -36,9 +41,10 @@ export function createDefaultMap(
   }
   const delivery = { x: 9, y: delivY };
 
-  const robotRows = [3, 7, 11, 15, 18];
+  const robotRows = [4, 8, 12, 16];
   const robots = robotRows
     .filter((y) => y < height)
+    .slice(0, MAX_ROBOTS)
     .map((y, id) => ({ id, x: 0, y }));
 
   return {

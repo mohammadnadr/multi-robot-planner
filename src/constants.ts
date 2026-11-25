@@ -5,11 +5,20 @@ export const GRID_MIN = 10;
 export const GRID_MAX = 50;
 
 export const MAX_DEMAND = 6;
+export const MAX_ROBOTS = 4;
+/** Product types exposed in the UI and used in task generation (A–D for now). */
+export const MAX_PRODUCT_TYPES = 4;
 export const DELIVERY_CELL = 7 as const;
 
 export const ACCEL_CELLS = 2; // cells needing extra cost after a turn
 
 export const SHELF_TYPES: ShelfType[] = ['A', 'B', 'C', 'D', 'E', 'F'];
+
+/** Active shelf types for tools, demand, and default map layout. */
+export const ACTIVE_PRODUCT_TYPES: ShelfType[] = SHELF_TYPES.slice(
+  0,
+  MAX_PRODUCT_TYPES,
+);
 
 export const SHELF_VALUE: Record<ShelfType, CellType> = {
   A: 1,
@@ -84,6 +93,6 @@ export const DEFAULT_DEMAND: Record<ShelfType, number> = {
   B: 2,
   C: 1,
   D: 1,
-  E: 1,
-  F: 1,
+  E: 0,
+  F: 0,
 };

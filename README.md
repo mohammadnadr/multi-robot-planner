@@ -20,8 +20,8 @@ Shared geometry / timing / conflict / energy-cost code lives under `src/planning
 ## Rules
 
 - One item capacity; reverse out of shelves; return home when done
-- Grid size **10×10** to **50×50** (default **20×20**); up to **six product types (A–F)**
-- Unlimited robots on the map (lower index = higher conflict priority)
+- Grid size **10×10** to **50×50** (default **20×20**); **four product types (A–D)** for now
+- Up to **four robots** on the map (lower index = higher conflict priority)
 - Shared corridors/cells allowed
 - Never same cell at the same time — lower-priority robot inserts waits
 - No head-on pass-through in a corridor (edge swap conflicts insert waits before rerouting)

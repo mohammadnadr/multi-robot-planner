@@ -10,7 +10,7 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bestMakespan, runAllAlgorithms } from '../algorithms';
-import { DEFAULT_DEMAND, DELIVERY_CELL } from '../constants';
+import { DEFAULT_DEMAND, DELIVERY_CELL, MAX_ROBOTS } from '../constants';
 import { shelfToolCellValue } from '../map/products';
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import { rescoreAllResults } from '../cost/aggregateCosts';
@@ -97,11 +97,16 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
 
         if (tool === 'robot') {
           if (
+            next.robots.length < MAX_ROBOTS &&
             !next.robots.some((r) => r.x === x && r.y === y) &&
             next.cells[y][x] === 0
           ) {
             next.robots.push({ id: next.robots.length, x, y });
-            setStatus(`Robots: ${next.robots.length} placed (robot ${next.robots.length})`);
+            setStatus(
+              `Robots: ${next.robots.length}/${MAX_ROBOTS} placed (robot ${next.robots.length})`,
+            );
+          } else if (next.robots.length >= MAX_ROBOTS) {
+            setStatus(`Robot limit reached (max ${MAX_ROBOTS}).`);
           }
           return next;
         }
@@ -251,6 +256,7 @@ function resizeMap(map: GridMap, width: number, height: number): GridMap {
 
   const robots = map.robots
     .filter((r) => r.x < width && r.y < height)
+    .slice(0, MAX_ROBOTS)
     .map((r, i) => ({ ...r, id: i }));
 
   let delivery = map.delivery;

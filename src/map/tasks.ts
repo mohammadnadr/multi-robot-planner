@@ -1,4 +1,4 @@
-import { SHELF_TYPES, VALUE_TO_SHELF } from '../constants';
+import { ACTIVE_PRODUCT_TYPES, VALUE_TO_SHELF } from '../constants';
 import type { Demand, GridMap, ShelfType, Task } from '../types';
 import { manhattan } from './obstacles';
 
@@ -7,7 +7,7 @@ export function buildTasks(map: GridMap, demand: Demand): Task[] {
   if (!map.delivery) return [];
 
   const shelves = Object.fromEntries(
-    SHELF_TYPES.map((typ) => [typ, [] as { x: number; y: number }[]]),
+    ACTIVE_PRODUCT_TYPES.map((typ) => [typ, [] as { x: number; y: number }[]]),
   ) as Record<ShelfType, { x: number; y: number }[]>;
 
   for (let y = 0; y < map.height; y++) {
@@ -19,7 +19,7 @@ export function buildTasks(map: GridMap, demand: Demand): Task[] {
 
   const tasks: Task[] = [];
   let counter = 0;
-  SHELF_TYPES.forEach((typ) => {
+  ACTIVE_PRODUCT_TYPES.forEach((typ) => {
     const need = Math.min(demand[typ], shelves[typ].length);
     const sorted = shelves[typ]
       .slice()
