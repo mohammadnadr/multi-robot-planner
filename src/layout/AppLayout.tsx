@@ -8,6 +8,7 @@ import { RulesPanel } from '../components/RulesPanel';
 import { ToolBar } from '../components/ToolBar';
 import { usePlanner } from '../context/PlannerContext';
 import { HELP } from '../help/glossary';
+import { DEFAULT_GRID_SIZE, GRID_MAX, GRID_MIN } from '../constants';
 import { useIsMobileLayout } from '../hooks/useMediaQuery';
 
 export function AppLayout() {
@@ -92,11 +93,14 @@ export function AppLayout() {
               <LabelWithInfo tip={HELP.gridW}>W</LabelWithInfo>
               <input
                 type="number"
-                min={5}
-                max={20}
+                min={GRID_MIN}
+                max={GRID_MAX}
                 value={map.width}
                 onChange={(e) => {
-                  const w = Math.max(5, Math.min(20, +e.target.value || 10));
+                  const w = Math.max(
+                    GRID_MIN,
+                    Math.min(GRID_MAX, +e.target.value || DEFAULT_GRID_SIZE),
+                  );
                   resize(w, map.height);
                 }}
               />
@@ -105,11 +109,14 @@ export function AppLayout() {
               <LabelWithInfo tip={HELP.gridH}>H</LabelWithInfo>
               <input
                 type="number"
-                min={5}
-                max={20}
+                min={GRID_MIN}
+                max={GRID_MAX}
                 value={map.height}
                 onChange={(e) => {
-                  const h = Math.max(5, Math.min(20, +e.target.value || 10));
+                  const h = Math.max(
+                    GRID_MIN,
+                    Math.min(GRID_MAX, +e.target.value || DEFAULT_GRID_SIZE),
+                  );
                   resize(map.width, h);
                 }}
               />

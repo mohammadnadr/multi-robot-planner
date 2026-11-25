@@ -10,7 +10,8 @@ import {
 } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { bestMakespan, runAllAlgorithms } from '../algorithms';
-import { MAX_ROBOTS, SHELF_VALUE } from '../constants';
+import { DEFAULT_DEMAND, DELIVERY_CELL } from '../constants';
+import { shelfToolCellValue } from '../map/products';
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import { rescoreAllResults } from '../cost/aggregateCosts';
 import type { CostConfig } from '../cost/types';
@@ -53,7 +54,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
   const [map, setMap] = useState<GridMap>(() => createDefaultMap());
   const [tool, setTool] = useState<Tool>('shelfA');
-  const [demand, setDemand] = useState<Demand>({ A: 2, B: 1, C: 2 });
+  const [demand, setDemand] = useState<Demand>(() => ({ ...DEFAULT_DEMAND }));
   const [status, setStatus] = useState(
     'Place shelves, delivery, robots — then run all algorithms.',
   );
@@ -96,12 +97,11 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
 
         if (tool === 'robot') {
           if (
-            next.robots.length < MAX_ROBOTS &&
             !next.robots.some((r) => r.x === x && r.y === y) &&
             next.cells[y][x] === 0
           ) {
             next.robots.push({ id: next.robots.length, x, y });
-            setStatus(`Robot ${next.robots.length} placed`);
+            setStatus(`Robots: ${next.robots.length} placed (robot ${next.robots.length})`);
           }
           return next;
         }
@@ -111,7 +111,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
             next.cells[next.delivery.y][next.delivery.x] = 0;
           }
           next.delivery = { x, y };
-          next.cells[y][x] = 4;
+          next.cells[y][x] = DELIVERY_CELL;
           next.robots = next.robots
             .filter((r) => !(r.x === x && r.y === y))
             .map((r, i) => ({ ...r, id: i }));
@@ -131,9 +131,8 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
           return next;
         }
 
-        const shelfVal = SHELF_VALUE[
-          tool === 'shelfA' ? 'A' : tool === 'shelfB' ? 'B' : 'C'
-        ] as CellType;
+        const shelfVal = shelfToolCellValue(tool);
+        if (shelfVal === null) return next;
         next.cells[y][x] = shelfVal;
         next.robots = next.robots
           .filter((r) => !(r.x === x && r.y === y))
@@ -176,11 +175,11 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   }, [map, demand, costConfig, navigate]);
 
   const resetDefaultMap = useCallback(() => {
-    setMap(createDefaultMap(map.width));
+    setMap(createDefaultMap(map.width, map.height));
     setResults(null);
     setStatus('Default map loaded');
     navigate('/editor');
-  }, [map.width, navigate]);
+  }, [map.width, map.height, navigate]);
 
   const clearAll = useCallback(() => {
     setMap(createEmptyMap(map.width, map.height));

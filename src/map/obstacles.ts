@@ -6,7 +6,7 @@ export function getObstacleSet(map: GridMap): Set<string> {
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
       const v = map.cells[y][x];
-      if (v >= 1 && v <= 3) s.add(key(x, y));
+      if (v >= 1 && v <= 6) s.add(key(x, y));
     }
   }
   return s;
@@ -30,5 +30,5 @@ export function inBounds(map: GridMap, x: number, y: number): boolean {
 
 export function isShelfCell(map: GridMap, x: number, y: number): boolean {
   const v = map.cells[y]?.[x];
-  return v === 1 || v === 2 || v === 3;
+  return v >= 1 && v <= 6;
 }

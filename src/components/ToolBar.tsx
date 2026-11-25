@@ -1,5 +1,7 @@
+import { SHELF_TYPES } from '../constants';
 import { HELP } from '../help/glossary';
-import type { Tool } from '../types';
+import { shelfToolId } from '../map/products';
+import type { ShelfType, Tool } from '../types';
 import { InfoTip } from './InfoTip';
 import { LabelWithInfo } from './LabelWithInfo';
 
@@ -8,19 +10,23 @@ type Props = {
   onTool: (t: Tool) => void;
 };
 
-const TOOLS: {
-  id: Tool;
-  label: string;
-  className: string;
-  tip: string;
-}[] = [
-  { id: 'shelfA', label: 'Shelf A', className: 'tool-a', tip: HELP.shelfA },
-  { id: 'shelfB', label: 'Shelf B', className: 'tool-b', tip: HELP.shelfB },
-  { id: 'shelfC', label: 'Shelf C', className: 'tool-c', tip: HELP.shelfC },
-  { id: 'delivery', label: 'Delivery', className: 'tool-d', tip: HELP.delivery },
-  { id: 'robot', label: 'Robot (max 3)', className: 'tool-r', tip: HELP.robot },
-  { id: 'eraser', label: 'Eraser', className: 'tool-e', tip: HELP.eraser },
-];
+const SHELF_HELP: Record<ShelfType, string> = {
+  A: HELP.shelfA,
+  B: HELP.shelfB,
+  C: HELP.shelfC,
+  D: HELP.shelfD,
+  E: HELP.shelfE,
+  F: HELP.shelfF,
+};
+
+const SHELF_CLASS: Record<ShelfType, string> = {
+  A: 'tool-a',
+  B: 'tool-b',
+  C: 'tool-c',
+  D: 'tool-d',
+  E: 'tool-e',
+  F: 'tool-f',
+};
 
 export function ToolBar({ tool, onTool }: Props) {
   return (
@@ -28,18 +34,51 @@ export function ToolBar({ tool, onTool }: Props) {
       <h2>
         <LabelWithInfo tip={HELP.tools}>Tools</LabelWithInfo>
       </h2>
-      {TOOLS.map((t) => (
-        <div key={t.id} className="tool-row">
-          <button
-            type="button"
-            className={`btn ${t.className} ${tool === t.id ? 'on' : ''}`}
-            onClick={() => onTool(t.id)}
-          >
-            {t.label}
-          </button>
-          <InfoTip text={t.tip} placement="up" />
-        </div>
-      ))}
+      {SHELF_TYPES.map((typ) => {
+        const id = shelfToolId(typ);
+        return (
+          <div key={id} className="tool-row">
+            <button
+              type="button"
+              className={`btn ${SHELF_CLASS[typ]} ${tool === id ? 'on' : ''}`}
+              onClick={() => onTool(id)}
+            >
+              Shelf {typ}
+            </button>
+            <InfoTip text={SHELF_HELP[typ]} placement="up" />
+          </div>
+        );
+      })}
+      <div className="tool-row">
+        <button
+          type="button"
+          className={`btn tool-delivery ${tool === 'delivery' ? 'on' : ''}`}
+          onClick={() => onTool('delivery')}
+        >
+          Delivery
+        </button>
+        <InfoTip text={HELP.delivery} placement="up" />
+      </div>
+      <div className="tool-row">
+        <button
+          type="button"
+          className={`btn tool-r ${tool === 'robot' ? 'on' : ''}`}
+          onClick={() => onTool('robot')}
+        >
+          Robot
+        </button>
+        <InfoTip text={HELP.robot} placement="up" />
+      </div>
+      <div className="tool-row">
+        <button
+          type="button"
+          className={`btn tool-eraser ${tool === 'eraser' ? 'on' : ''}`}
+          onClick={() => onTool('eraser')}
+        >
+          Eraser
+        </button>
+        <InfoTip text={HELP.eraser} placement="up" />
+      </div>
     </section>
   );
 }

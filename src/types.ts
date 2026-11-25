@@ -1,10 +1,11 @@
-export type CellType = 0 | 1 | 2 | 3 | 4; // empty, A, B, C, delivery
+/** 0 empty; 1–6 shelves A–F; 7 delivery */
+export type CellType = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
 export type Point = { x: number; y: number };
 
 export type TimedPoint = Point & { t: number; wait?: boolean };
 
-export type ShelfType = 'A' | 'B' | 'C';
+export type ShelfType = 'A' | 'B' | 'C' | 'D' | 'E' | 'F';
 
 export type Demand = Record<ShelfType, number>;
 
@@ -29,6 +30,9 @@ export type Tool =
   | 'shelfA'
   | 'shelfB'
   | 'shelfC'
+  | 'shelfD'
+  | 'shelfE'
+  | 'shelfF'
   | 'delivery'
   | 'robot'
   | 'eraser';
@@ -106,3 +110,7 @@ export type AlgorithmResult = PlanResult & {
 };
 
 export type AllResults = Record<AlgorithmId, AlgorithmResult>;
+
+export function emptyDemand(): Demand {
+  return { A: 0, B: 0, C: 0, D: 0, E: 0, F: 0 };
+}
