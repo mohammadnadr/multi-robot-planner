@@ -4,7 +4,7 @@ Educational **Multi-AGV / multi-robot task allocation and path planning** simula
 
 **Live demo (desktop):** [https://mohammadnadr.github.io/multi-robot-planner/](https://mohammadnadr.github.io/multi-robot-planner/)
 
-**Live demo (mobile / responsive):** [https://mohammadnadr.github.io/multi-robot-planner/mobile/](https://mohammadnadr.github.io/multi-robot-planner/mobile/) — same GitHub Pages deploy as the desktop demo (`deploy-pages.yml` builds both paths).
+**Live demo (mobile / responsive):** [https://mohammadnadr.github.io/multi-robot-planner/mobile/](https://mohammadnadr.github.io/multi-robot-planner/mobile/) — same GitHub Pages deploy as the desktop demo (`deploy-pages.yml` builds both paths). On a phone, use this `/mobile/` URL (not a bookmark to an old build). If you still see the old “Calculating paths…” screen, hard-refresh Safari (long-press ↻) or delete and re-add the home-screen shortcut — the live app shows a **Running planners** wizard with four algorithm steps and a progress bar.
 
 ## Algorithms
 
