@@ -1,5 +1,6 @@
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import type { CostConfig } from '../cost/types';
+import type { AlgorithmRunContext } from '../planning/runProgress';
 import {
   emptyResult,
   estimateTaskCost,
@@ -50,12 +51,13 @@ export function assignGreedy(robots: Robot[], tasks: Task[]): Assignment {
   return assign;
 }
 
-export function runGreedy(
+export async function runGreedy(
   map: GridMap,
   robots: Robot[],
   tasks: Task[],
   costConfig: CostConfig = DEFAULT_COST_CONFIG,
-): AlgorithmResult {
+  runCtx?: AlgorithmRunContext,
+): Promise<AlgorithmResult> {
   if (!robots.length || !tasks.length) {
     return {
       id: 'greedy',
@@ -66,12 +68,13 @@ export function runGreedy(
     };
   }
 
-  const best = findBestRobotCount(
+  const best = await findBestRobotCount(
     map,
     robots,
     tasks,
     assignGreedy,
     costConfig,
+    runCtx,
   );
   return {
     id: 'greedy',

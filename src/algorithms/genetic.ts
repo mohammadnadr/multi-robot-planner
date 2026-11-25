@@ -1,5 +1,7 @@
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import type { CostConfig } from '../cost/types';
+import type { AlgorithmRunContext } from '../planning/runProgress';
+import { reportGeneticGeneration } from '../planning/runProgress';
 import { emptyResult, evaluateAssignment } from '../planning/evaluatePlan';
 import type {
   AlgorithmResult,
@@ -27,12 +29,13 @@ type Chromosome = {
  * Genetic Algorithm: evolves task order + how tasks are split across robots.
  * Fitness = Makespan after geometric planning + wait insertion.
  */
-export function runGenetic(
+export async function runGenetic(
   map: GridMap,
   robots: Robot[],
   tasks: Task[],
   costConfig: CostConfig = DEFAULT_COST_CONFIG,
-): AlgorithmResult {
+  runCtx?: AlgorithmRunContext,
+): Promise<AlgorithmResult> {
   const meta = {
     id: 'genetic' as const,
     name: 'Genetic Algorithm',
@@ -48,7 +51,15 @@ export function runGenetic(
 
   for (let k = 1; k <= robots.length; k++) {
     const sub = robots.slice(0, k);
-    const candidate = evolve(map, sub, tasks, costConfig);
+    const candidate = await evolve(
+      map,
+      sub,
+      tasks,
+      costConfig,
+      runCtx,
+      k,
+      robots.length,
+    );
     if (!candidate) continue;
     if (!best || candidate.makespan < best.makespan) best = candidate;
   }
@@ -56,12 +67,15 @@ export function runGenetic(
   return { ...meta, ...(best ?? emptyResult(robots)) };
 }
 
-function evolve(
+async function evolve(
   map: GridMap,
   robots: Robot[],
   tasks: Task[],
   costConfig: CostConfig,
-): PlanResult | null {
+  runCtx: AlgorithmRunContext | undefined,
+  kRobots: number,
+  kMax: number,
+): Promise<PlanResult | null> {
   const nR = robots.length;
   const nT = tasks.length;
 
@@ -72,6 +86,13 @@ function evolve(
   let best: PlanResult | null = null;
 
   for (let gen = 0; gen < GENERATIONS; gen++) {
+    await reportGeneticGeneration(
+      runCtx,
+      kRobots,
+      kMax,
+      gen + 1,
+      GENERATIONS,
+    );
     const scored = population.map((chrom) => {
       const assign = decode(chrom, tasks, nR);
       const result = evaluateAssignment(map, robots, assign, costConfig);

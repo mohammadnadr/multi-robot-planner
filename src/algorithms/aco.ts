@@ -1,5 +1,7 @@
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import type { CostConfig } from '../cost/types';
+import type { AlgorithmRunContext } from '../planning/runProgress';
+import { reportAcoIteration } from '../planning/runProgress';
 import {
   emptyResult,
   estimateTaskCost,
@@ -31,12 +33,13 @@ function edgeKey(ti: number, ri: number): EdgeKey {
  * Ant Colony Optimization over task→robot assignment.
  * Each ant builds a full assignment; pheromone reinforces low-Makespan solutions.
  */
-export function runAco(
+export async function runAco(
   map: GridMap,
   robots: Robot[],
   tasks: Task[],
   costConfig: CostConfig = DEFAULT_COST_CONFIG,
-): AlgorithmResult {
+  runCtx?: AlgorithmRunContext,
+): Promise<AlgorithmResult> {
   const meta = {
     id: 'aco' as const,
     name: 'Ant Colony (ACO)',
@@ -52,7 +55,15 @@ export function runAco(
 
   for (let k = 1; k <= robots.length; k++) {
     const sub = robots.slice(0, k);
-    const candidate = optimizeAco(map, sub, tasks, costConfig);
+    const candidate = await optimizeAco(
+      map,
+      sub,
+      tasks,
+      costConfig,
+      runCtx,
+      k,
+      robots.length,
+    );
     if (!candidate) continue;
     if (!best || candidate.makespan < best.makespan) best = candidate;
   }
@@ -60,12 +71,15 @@ export function runAco(
   return { ...meta, ...(best ?? emptyResult(robots)) };
 }
 
-function optimizeAco(
+async function optimizeAco(
   map: GridMap,
   robots: Robot[],
   tasks: Task[],
   costConfig: CostConfig,
-): PlanResult | null {
+  runCtx: AlgorithmRunContext | undefined,
+  kRobots: number,
+  kMax: number,
+): Promise<PlanResult | null> {
   const nR = robots.length;
   const nT = tasks.length;
   const pheromone = new Map<EdgeKey, number>();
@@ -80,6 +94,13 @@ function optimizeAco(
   let bestAssign: Assignment | null = null;
 
   for (let iter = 0; iter < ITERATIONS; iter++) {
+    await reportAcoIteration(
+      runCtx,
+      kRobots,
+      kMax,
+      iter + 1,
+      ITERATIONS,
+    );
     const antResults: { assign: Assignment; result: PlanResult }[] = [];
 
     for (let a = 0; a < ANTS; a++) {

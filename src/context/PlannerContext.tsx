@@ -9,7 +9,11 @@ import {
   type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { bestMakespan, runAllAlgorithms } from '../algorithms';
+import { bestMakespan, runAllAlgorithmsAsync } from '../algorithms';
+import {
+  initialRunProgress,
+  type RunProgress,
+} from '../planning/runProgress';
 import { DEFAULT_DEMAND, DELIVERY_CELL, MAX_ROBOTS } from '../constants';
 import { shelfToolCellValue } from '../map/products';
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
@@ -39,6 +43,7 @@ type PlannerContextValue = {
   results: AllResults | null;
   setResults: React.Dispatch<React.SetStateAction<AllResults | null>>;
   running: boolean;
+  runProgress: RunProgress | null;
   costConfig: CostConfig;
   setCostConfig: (cfg: CostConfig) => void;
   runAlgorithms: () => void;
@@ -60,6 +65,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
   );
   const [results, setResults] = useState<AllResults | null>(null);
   const [running, setRunning] = useState(false);
+  const [runProgress, setRunProgress] = useState<RunProgress | null>(null);
   const [costConfig, setCostConfigState] = useState<CostConfig>(() => ({
     ...DEFAULT_COST_CONFIG,
   }));
@@ -158,10 +164,12 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
       return;
     }
     setRunning(true);
-    setStatus('Running Greedy, Prioritized, ACO, Genetic + cost scoring…');
-    window.setTimeout(() => {
+    setRunProgress(initialRunProgress());
+    void (async () => {
       try {
-        const all = runAllAlgorithms(map, demand, costConfig);
+        const all = await runAllAlgorithmsAsync(map, demand, costConfig, {
+          onProgress: setRunProgress,
+        });
         setResults(all);
         const best = bestMakespan(all);
         const bestUsd = Math.min(
@@ -175,8 +183,9 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
         setStatus(`Error: ${e instanceof Error ? e.message : String(e)}`);
       } finally {
         setRunning(false);
+        setRunProgress(null);
       }
-    }, 40);
+    })();
   }, [map, demand, costConfig, navigate]);
 
   const resetDefaultMap = useCallback(() => {
@@ -210,6 +219,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
       results,
       setResults,
       running,
+      runProgress,
       costConfig,
       setCostConfig,
       runAlgorithms,
@@ -225,6 +235,7 @@ export function PlannerProvider({ children }: { children: ReactNode }) {
       status,
       results,
       running,
+      runProgress,
       costConfig,
       setCostConfig,
       runAlgorithms,
