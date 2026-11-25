@@ -2,7 +2,7 @@ name: Deploy GitHub Pages
 
 on:
   push:
-    branches: [main, master, cursor/responsive-design-8515]
+    branches: [main, master]
   workflow_dispatch:
 
 permissions:
@@ -33,6 +33,16 @@ jobs:
         run: npx vite build --outDir dist/mobile
         env:
           VITE_BASE: /multi-robot-planner/mobile/
+      - name: Verify wizard UI in bundles (not legacy loading overlay)
+        run: |
+          if grep -rq 'Calculating paths + energy costs' dist/; then
+            echo 'Legacy static loading text found in build output.'
+            exit 1
+          fi
+          if ! grep -rq 'Running planners' dist/; then
+            echo 'Wizard loading UI missing from build output.'
+            exit 1
+          fi
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
