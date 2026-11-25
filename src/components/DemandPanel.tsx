@@ -1,4 +1,4 @@
-import { MAX_DEMAND, SHELF_TYPES } from '../constants';
+import { ACTIVE_PRODUCT_TYPES, MAX_DEMAND } from '../constants';
 import { HELP } from '../help/glossary';
 import type { Demand, ShelfType } from '../types';
 import { InfoTip } from './InfoTip';
@@ -31,7 +31,7 @@ export function DemandPanel({ demand, onChange }: Props) {
       <h2>
         <LabelWithInfo tip={HELP.demand}>Demand</LabelWithInfo>
       </h2>
-      {SHELF_TYPES.map((typ) => (
+      {ACTIVE_PRODUCT_TYPES.map((typ) => (
         <div className="row" key={typ}>
           <span className="demand-label">
             {typ}

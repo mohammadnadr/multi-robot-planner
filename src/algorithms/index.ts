@@ -1,3 +1,4 @@
+import { MAX_ROBOTS } from '../constants';
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import type { CostConfig } from '../cost/types';
 import { buildTasks } from '../map/tasks';
@@ -31,7 +32,7 @@ export function runAllAlgorithms(
   costConfig: CostConfig = DEFAULT_COST_CONFIG,
 ): AllResults {
   const tasks = buildTasks(map, demand);
-  const robots = map.robots;
+  const robots = map.robots.slice(0, MAX_ROBOTS);
 
   return {
     greedy: runGreedy(map, robots, tasks, costConfig),

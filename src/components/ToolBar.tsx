@@ -1,4 +1,4 @@
-import { SHELF_TYPES } from '../constants';
+import { ACTIVE_PRODUCT_TYPES, MAX_ROBOTS } from '../constants';
 import { HELP } from '../help/glossary';
 import { shelfToolId } from '../map/products';
 import type { ShelfType, Tool } from '../types';
@@ -34,7 +34,7 @@ export function ToolBar({ tool, onTool }: Props) {
       <h2>
         <LabelWithInfo tip={HELP.tools}>Tools</LabelWithInfo>
       </h2>
-      {SHELF_TYPES.map((typ) => {
+      {ACTIVE_PRODUCT_TYPES.map((typ) => {
         const id = shelfToolId(typ);
         return (
           <div key={id} className="tool-row">
@@ -65,7 +65,7 @@ export function ToolBar({ tool, onTool }: Props) {
           className={`btn tool-r ${tool === 'robot' ? 'on' : ''}`}
           onClick={() => onTool('robot')}
         >
-          Robot
+          Robot (max {MAX_ROBOTS})
         </button>
         <InfoTip text={HELP.robot} placement="up" />
       </div>
