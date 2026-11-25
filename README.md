@@ -22,6 +22,7 @@ Shared geometry / timing / conflict / energy-cost code lives under `src/planning
 - One item capacity; reverse out of shelves; return home when done
 - Shared corridors/cells allowed
 - Never same cell at the same time — lower-priority robot inserts waits
+- No head-on pass-through in a corridor (edge swap conflicts insert waits before rerouting)
 - Motion cost from energy(v,a) × energy price (plus ops fees)
 
 ## Routes

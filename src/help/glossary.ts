@@ -14,7 +14,8 @@ export const HELP = {
     'How much energy each kind of motion burns. Motion $ = total energy × energy price — not stacked flat fees for turn/straight.',
   opsFees:
     'Non-physics dollar fees: picking, delivering, owning each robot, and valuing Makespan time.',
-  rules: 'Movement and collision rules the simulator always enforces.',
+  rules:
+    'Movement and collision rules: no same cell at same time, no head-on swap moves in a corridor; lower-priority robots insert waits.',
   results: 'Side-by-side comparison of all algorithms on time (Makespan) and cost (energy + $).',
 
   // Tools

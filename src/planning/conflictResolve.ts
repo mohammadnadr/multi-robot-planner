@@ -11,10 +11,76 @@ export type ResolveResult = {
   perRobotFinish: number[];
 };
 
+function atTime(path: TimedPoint[], time: number): TimedPoint | undefined {
+  return path.find((p) => p.t === time);
+}
+
+/** Insert before step k; walk back if stalling would share high's cell at t. */
+function waitIndexAvoidingHigh(
+  high: TimedPoint[],
+  low: TimedPoint[],
+  k: number,
+): number {
+  let waitIndex = k;
+  const conflictTime = low[k].t;
+
+  while (waitIndex > 0) {
+    const stall = low[waitIndex - 1];
+    const highAt = atTime(high, conflictTime);
+    if (!highAt || stall.x !== highAt.x || stall.y !== highAt.y) {
+      return waitIndex;
+    }
+    waitIndex--;
+  }
+  return 0;
+}
+
+function insertWaitBeforeStep(
+  low: TimedPoint[],
+  k: number,
+  onInserted: () => void,
+): void {
+  const waitPoint: TimedPoint = {
+    x: k > 0 ? low[k - 1].x : low[k].x,
+    y: k > 0 ? low[k - 1].y : low[k].y,
+    t: low[k].t,
+    wait: true,
+  };
+  for (let m = k; m < low.length; m++) {
+    low[m].t++;
+  }
+  low.splice(k, 0, waitPoint);
+  onInserted();
+}
+
+/** Head-on swap: both robots exchange cells in one timestep (no shared vertex). */
+function isSwapConflict(
+  high: TimedPoint[],
+  low: TimedPoint[],
+  k: number,
+): boolean {
+  if (k <= 0) return false;
+  const from = low[k - 1];
+  const to = low[k];
+  if (from.x === to.x && from.y === to.y) return false;
+
+  const t = to.t;
+  const highTo = atTime(high, t);
+  const highFrom = atTime(high, t - 1);
+  if (!highTo || !highFrom) return false;
+
+  return (
+    highFrom.x === to.x &&
+    highFrom.y === to.y &&
+    highTo.x === from.x &&
+    highTo.y === from.y
+  );
+}
+
 /**
  * Resolve spatial conflicts by inserting waits on lower-priority robots.
  * Robot index 0 = highest priority. Shared corridors/cells are allowed;
- * only same (x,y,t) is forbidden.
+ * same (x,y,t) and head-on edge swaps are forbidden.
  */
 export function addWaits(rawPaths: Point[][]): ResolveResult {
   const n = rawPaths.length;
@@ -28,7 +94,9 @@ export function addWaits(rawPaths: Point[][]): ResolveResult {
   let guard = 0;
   let waitSteps = 0;
 
-  while (changed && guard < 2000) {
+  const maxWaitSteps = Math.max(400, 80 * n * (rawPaths[0]?.length ?? 1));
+
+  while (changed && guard < 2000 && waitSteps < maxWaitSteps) {
     changed = false;
     guard++;
 
@@ -43,21 +111,15 @@ export function addWaits(rawPaths: Point[][]): ResolveResult {
 
         for (let k = 0; k < low.length; k++) {
           const cell = `${low[k].x},${low[k].y},${low[k].t}`;
-          if (occupied.has(cell)) {
-            // Lower priority brakes: insert a wait before this step
-            const waitPoint: TimedPoint = {
-              x: k > 0 ? low[k - 1].x : low[k].x,
-              y: k > 0 ? low[k - 1].y : low[k].y,
-              t: low[k].t,
-              wait: true,
-            };
-            // Shift all times from k onward by +1
-            for (let m = k; m < low.length; m++) {
-              low[m].t++;
-            }
-            low.splice(k, 0, waitPoint);
-            waitSteps++;
-            changed = true;
+          const vertexHit = occupied.has(cell);
+          const swapHit = !vertexHit && isSwapConflict(high, low, k);
+
+          if (vertexHit || swapHit) {
+            const waitIndex = waitIndexAvoidingHigh(high, low, k);
+            insertWaitBeforeStep(low, waitIndex, () => {
+              waitSteps++;
+              changed = true;
+            });
             break;
           }
         }
