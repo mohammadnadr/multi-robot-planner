@@ -1,6 +1,7 @@
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import type { CostConfig } from '../cost/types';
 import type { AlgorithmRunContext } from '../planning/runProgress';
+import { getObstacleSet } from '../map/obstacles';
 import {
   emptyResult,
   estimateTaskCost,
@@ -18,7 +19,12 @@ import type {
  * Greedy earliest-finish assignment:
  * repeatedly assign the (robot, task) pair with lowest estimated finish cost.
  */
-export function assignGreedy(robots: Robot[], tasks: Task[]): Assignment {
+export function assignGreedy(
+  map: GridMap,
+  robots: Robot[],
+  tasks: Task[],
+  obstacles: Set<string>,
+): Assignment {
   const n = robots.length;
   const assign: Assignment = Array.from({ length: n }, () => []);
   const rem = [...tasks];
@@ -32,7 +38,7 @@ export function assignGreedy(robots: Robot[], tasks: Task[]): Assignment {
 
     for (let ti = 0; ti < rem.length; ti++) {
       for (let r = 0; r < n; r++) {
-        const c = estimateTaskCost(pos[r], rem[ti], load[r]);
+        const c = estimateTaskCost(map, pos[r], rem[ti], load[r], obstacles);
         if (c < bestC) {
           bestC = c;
           bestR = r;
@@ -68,11 +74,12 @@ export async function runGreedy(
     };
   }
 
+  const obstacles = getObstacleSet(map);
   const best = await findBestRobotCount(
     map,
     robots,
     tasks,
-    assignGreedy,
+    (r, t) => assignGreedy(map, r, t, obstacles),
     costConfig,
     runCtx,
   );

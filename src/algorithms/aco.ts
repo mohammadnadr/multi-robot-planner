@@ -1,5 +1,6 @@
 import { DEFAULT_COST_CONFIG } from '../cost/defaultCosts';
 import type { CostConfig } from '../cost/types';
+import { getObstacleSet } from '../map/obstacles';
 import type { AlgorithmRunContext } from '../planning/runProgress';
 import { reportAcoIteration } from '../planning/runProgress';
 import {
@@ -82,6 +83,7 @@ async function optimizeAco(
 ): Promise<PlanResult | null> {
   const nR = robots.length;
   const nT = tasks.length;
+  const obstacles = getObstacleSet(map);
   const pheromone = new Map<EdgeKey, number>();
 
   for (let ti = 0; ti < nT; ti++) {
@@ -104,7 +106,13 @@ async function optimizeAco(
     const antResults: { assign: Assignment; result: PlanResult }[] = [];
 
     for (let a = 0; a < ANTS; a++) {
-      const assign = buildAntAssignment(robots, tasks, pheromone);
+      const assign = buildAntAssignment(
+        map,
+        robots,
+        tasks,
+        pheromone,
+        obstacles,
+      );
       const result = evaluateAssignment(map, robots, assign, costConfig);
       if (!result) continue;
       antResults.push({ assign, result });
@@ -150,9 +158,11 @@ async function optimizeAco(
 }
 
 function buildAntAssignment(
+  map: GridMap,
   robots: Robot[],
   tasks: Task[],
   pheromone: Map<EdgeKey, number>,
+  obstacles: Set<string>,
 ): Assignment {
   const nR = robots.length;
   const assign: Assignment = Array.from({ length: nR }, () => []);
@@ -175,7 +185,10 @@ function buildAntAssignment(
       const tau = pheromone.get(edgeKey(ti, ri)) ?? 1;
       const eta =
         1 /
-        Math.max(1, estimateTaskCost(pos[ri], task, load[ri]));
+        Math.max(
+          1,
+          estimateTaskCost(map, pos[ri], task, load[ri], obstacles),
+        );
       const w = Math.pow(tau, ALPHA) * Math.pow(eta, BETA);
       weights.push(w);
       sum += w;
@@ -192,7 +205,13 @@ function buildAntAssignment(
     }
 
     assign[chosen].push(task);
-    load[chosen] = estimateTaskCost(pos[chosen], task, load[chosen]);
+    load[chosen] = estimateTaskCost(
+      map,
+      pos[chosen],
+      task,
+      load[chosen],
+      obstacles,
+    );
     pos[chosen] = { ...task.deliv };
   }
 
